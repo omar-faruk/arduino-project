@@ -1,4 +1,4 @@
 arduino-project
 ===============
 
-small messenger data using arduino
+small messenger data transfer using arduino
