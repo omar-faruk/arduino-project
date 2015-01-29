@@ -6,7 +6,7 @@ def encode_to_bin(num):
 	return bin(num)[2:].zfill(5)
 	
 def encode_it(char):
-	if(ord(char)>ord('a') and ord(char)<ord('z')):
+	if(ord(char)>=ord('a') and ord(char)<=ord('z')):
 		return int(ord(char)-ord('a')+1)
 	elif(char==" "):
 		return 27
