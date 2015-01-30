@@ -8,6 +8,11 @@ int l4=4;
 int l5=5;
 int b0,b1,b2,b3,b4,b5;
 
+char decodeIT(int a,int b,int c,int d,int e){
+  int sum=0;
+  sum+=a*16+b*8+c*4+d*2+e*1;
+  return char(sum+'a'-1);
+}
  void setup() {
    pinMode(l0, INPUT);
    pinMode(l1,INPUT);
@@ -30,13 +35,15 @@ int b0,b1,b2,b3,b4,b5;
   
    if(b4!=0 || b3!=0 || b2!=0 || b1!=0 || b0!=0)
    {
-     Serial.print(b4);
+     /*Serial.print(b4);
      Serial.print(b3);
      Serial.print(b2);
      Serial.print(b1);
-     Serial.print(b0);
-     Serial.println("");
+     Serial.print(b0);*/
+     char value=decodeIT(b4,b3,b2,b1,b0);
+     if(value=='{') value=' ';
+     Serial.print(value);
    }
-    delay(75);
+    delay(71);
  }
 

@@ -33,31 +33,18 @@
               </packing>
             </child>
             <child>
-              <object class="GtkEntry" id="messege_box">
+              <object class="GtkSearchEntry" id="message_box">
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
-                <property name="margin_top">44</property>
-                <property name="margin_bottom">20</property>
-                <property name="placeholder_text" translatable="yes">Type your messege here...</property>
+                <property name="primary_icon_name">edit-find-symbolic</property>
+                <property name="primary_icon_activatable">False</property>
+                <property name="primary_icon_sensitive">False</property>
+                <signal name="activate" handler="on_message_box_activate" swapped="no"/>
               </object>
               <packing>
                 <property name="expand">False</property>
                 <property name="fill">True</property>
                 <property name="position">1</property>
-              </packing>
-            </child>
-            <child>
-              <object class="GtkButton" id="send">
-                <property name="label" translatable="yes">send message</property>
-                <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="receives_default">True</property>
-                <signal name="clicked" handler="on_send_clicked" swapped="no"/>
-              </object>
-              <packing>
-                <property name="expand">False</property>
-                <property name="fill">True</property>
-                <property name="position">2</property>
               </packing>
             </child>
             <child>

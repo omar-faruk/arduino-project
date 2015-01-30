@@ -20,9 +20,8 @@ class MessengerGUI:
 		builder = Gtk.Builder()
 		builder.add_from_file("messenger.glade")
 		self.window = builder.get_object("messengerWindow")
-		self.messegeBox=builder.get_object("messege_box")
+		self.messageBox=builder.get_object("message_box")
 		self.showBox=builder.get_object("receive_box")
-		self.send_button=builder.get_object("send")
 		self.connect_button=builder.get_object("connect")
 		builder.connect_signals(self)
 		
@@ -30,20 +29,21 @@ class MessengerGUI:
 		connect_arduino=False
 		try:
 			global arduino
-			arduino = serial.Serial('/dev/ttyACM1', 9600)
+			arduino = serial.Serial('/dev/ttyACM0', 9600)
 			connect_arduino=True
 		except:
 			self.showBox.set_text("Failed to connect on /dev/ttyACM0\n check your usb connection")
 		if(connect_arduino==True):
 			self.showBox.set_text("Connection Successfull!!!")
 
-	def on_send_clicked(self,button):
+	def on_message_box_activate(self,button):
+		
 		global arduino
-		sms=self.messegeBox.get_text()
+		sms=self.messageBox.get_text()
 		sms=str(sms)
 		self.showBox.set_text(sms)
 		try:
-			self.messegeBox.set_text('')
+			self.messageBox.set_text('')
 			for i in range (0,len(sms)):
 				ascii=encode_it(sms[i])
 				char=encode_to_bin(ascii)
