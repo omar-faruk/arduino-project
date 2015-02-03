@@ -29,7 +29,7 @@ class MessengerGUI:
 		connect_arduino=False
 		try:
 			global arduino
-			arduino = serial.Serial('/dev/ttyACM0', 9600)
+			arduino = serial.Serial('/dev/ttyACM1', 9600)
 			connect_arduino=True
 		except:
 			self.showBox.set_text("Failed to connect on /dev/ttyACM0\n check your usb connection")
