@@ -4,4 +4,3 @@ sms = arduino.read()
 while sms is not None:
 	print sms
 	sms=arduino.read()
-    #print decodeIt(sms)
