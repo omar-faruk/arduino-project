@@ -1,4 +1,4 @@
 arduino-project
 ===============
 
-small messenger data transfer using arduino
+small one way messenger using arduino (working principle of optical computing)
