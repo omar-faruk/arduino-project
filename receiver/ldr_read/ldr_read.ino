@@ -13,6 +13,7 @@ char decodeIT(int a,int b,int c,int d,int e){
   sum+=a*16+b*8+c*4+d*2+e*1;
   return char(sum+'a'-1);
 }
+
  void setup() {
    pinMode(l0, INPUT);
    pinMode(l1,INPUT);
@@ -25,25 +26,18 @@ char decodeIT(int a,int b,int c,int d,int e){
  }
  
  void loop() {
-   
      b5 = r(l5)>10;
      b4 = r(l4)>10;
      b3 = r(l3)>15;
      b2 = r(l2)>10;
      b1 = r(l1)>10;
      b0 = r(l0)>12;
-  
    if(b4!=0 || b3!=0 || b2!=0 || b1!=0 || b0!=0)
    {
-     /*Serial.print(b4);
-     Serial.print(b3);
-     Serial.print(b2);
-     Serial.print(b1);
-     Serial.print(b0);*/
      char value=decodeIT(b4,b3,b2,b1,b0);
      if(value=='{') value=' ';
      Serial.print(value);
    }
-    delay(71);
+    delay(78);
  }
 
