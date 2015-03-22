@@ -71,9 +71,10 @@ void dumpFile() {
 }
 
 void newEntry() {
-  delay(3000);
+  delay(1000);
   tag="";
   Serial.println("Ready to entry");
+  rfid.flush();
   while(tag.length()<13){
     while (rfid.available() > 0) {
       c = rfid.read();
