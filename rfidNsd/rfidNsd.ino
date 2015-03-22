@@ -72,7 +72,7 @@ void dumpFile() {
 void newEntry() {
   delay(1000);
   tag="";
-  //Serial.println("Ready to entry");
+  Serial.println("Ready to entry");
   rfid.flush();
   while(tag.length()<13){
     while (rfid.available() > 0) {
@@ -88,7 +88,7 @@ void newEntry() {
     dataFile.println(tag);
     dataFile.close();
   }
-  //Serial.println("Registry Complete");
+  Serial.println("Registry Complete");
 
 }
 

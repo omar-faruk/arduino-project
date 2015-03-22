@@ -1,6 +1,7 @@
 from gi.repository import Gtk, GObject
 import serial
 import time
+import os
 
 class MessengerGUI:
 	arduino=None
@@ -28,15 +29,18 @@ class MessengerGUI:
 	def on_dump_clicked(self,button):
 		global arduino
 		count=0
+		f=open('db.txt','w')
 		try:
 			arduino.write("dump")
 			while(arduino.inWaiting()>=11):
 				sms=arduino.readline()
+				f.write(sms)
 				print sms
 				count=count+1
 			if(count<2):
-					self.showBox.set_text("Proble Dumping , try again")
+					self.showBox.set_text("Missed timing, try again")
 			else:
+				f.close()
 				self.showBox.set_text("Dumping Complete")
 		except:
 			self.showBox.set_text("Error !!! Dumping Failed")
