@@ -10,19 +10,19 @@ String tag, command;
 
 void setup() {
   Serial.begin(9600);
-  Serial.print("Initializing SD card...");
+  //Serial.print("Initializing SD card...");
   pinMode(4, OUTPUT);
 
   if (!SD.begin(4)) {
-    Serial.println("initialization failed!");
+    //Serial.println("initialization failed!");
     return;
   }
-  Serial.println("initialization done.");
+  //Serial.println("initialization done.");
 
-  Serial.println("Serial Ready");
+  //Serial.println("Serial Ready");
 
   rfid.begin(9600);
-  Serial.println("RFID Ready");
+  //Serial.println("RFID Ready");
 }
 
 void loop() {
@@ -30,7 +30,7 @@ void loop() {
   if (Serial.available()) {
     command = Serial.readString();
     if (command == "dump\n" || command == "dump") {
-      Serial.println(command);
+      //Serial.println(command);
       dumpFile();
     }
   }
@@ -42,7 +42,7 @@ void loop() {
   tag = tag.substring(1, 13);
 
   if (tag.length() > 10) {
-    Serial.println(tag);
+    //Serial.println(tag);
     if (tag == admin) {
       Serial.println("attendence:");
     }
@@ -62,18 +62,17 @@ void dumpFile() {
       String line=dataFile.readString();
       Serial.println(line);
     }
-    Serial.println("Dumping done!");
+    //Serial.println("Dumping done!");
     dataFile.close();
   } 
-  else
-    Serial.println("error opening db.txt");
+   //else Serial.println("error opening db.txt");
 
 }
 
 void newEntry() {
   delay(1000);
   tag="";
-  Serial.println("Ready to entry");
+  //Serial.println("Ready to entry");
   rfid.flush();
   while(tag.length()<13){
     while (rfid.available() > 0) {
@@ -89,7 +88,7 @@ void newEntry() {
     dataFile.println(tag);
     dataFile.close();
   }
-  Serial.println("Registry Complete");
+  //Serial.println("Registry Complete");
 
 }
 
