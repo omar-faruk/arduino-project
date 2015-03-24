@@ -10,19 +10,11 @@ String tag, command;
 
 void setup() {
   Serial.begin(9600);
-  //Serial.print("Initializing SD card...");
   pinMode(4, OUTPUT);
-
   if (!SD.begin(4)) {
-    //Serial.println("initialization failed!");
     return;
   }
-  //Serial.println("initialization done.");
-
-  //Serial.println("Serial Ready");
-
   rfid.begin(9600);
-  //Serial.println("RFID Ready");
 }
 
 void loop() {
@@ -54,21 +46,6 @@ void loop() {
   delay(50);
 }
 
-void dumpFile() {
-  File dataFile = SD.open("db.txt");
-  if (dataFile) {
-    while (dataFile.available()) {
-      //Serial.write(dataFile.read());
-      String line=dataFile.readString();
-      Serial.println(line);
-    }
-    //Serial.println("Dumping done!");
-    dataFile.close();
-  } 
-   //else Serial.println("error opening db.txt");
-
-}
-
 void newEntry() {
   delay(1000);
   tag="";
@@ -80,17 +57,63 @@ void newEntry() {
       tag += c;
     }
   }
-
   tag = tag.substring(1, 13);
-  File dataFile=SD.open("db.txt",FILE_WRITE);
-  if(dataFile){
-    Serial.println(tag);
-    dataFile.println(tag);
-    dataFile.close();
+  if(!isRegistered(tag)){
+    File dataFile=SD.open("db.txt",FILE_WRITE);
+    if(dataFile){
+      Serial.println(tag);
+      dataFile.println(tag);
+      dataFile.close();
+    }
+    Serial.println("Registry Complete");
   }
-  Serial.println("Registry Complete");
+}
+
+void dumpFile() {
+  File dataFile=SD.open("db.txt");
+  if (dataFile) {
+    while (dataFile.available()) {
+      //Serial.write(dataFile.read());
+      String line=dataFile.readString();
+      Serial.println(line);
+    }
+    //Serial.println("Dumping done!");
+    dataFile.close();
+  } 
+  //else Serial.println("error opening db.txt");
 
 }
+
+
+boolean isRegistered(String tag){
+
+  String regTag;
+  char c;
+  int len=0;
+  File dataFile=SD.open("db.txt");
+
+  if(dataFile){
+    while(dataFile.available()){
+      if(len==12){
+        Serial.println(regTag);
+        if(regTag.equals(tag)){
+          Serial.println("Registered");
+          return true;
+          break;
+        }
+        regTag="";
+        len=0;
+      }
+      else {
+        c=dataFile.read();
+        regTag+=c;
+        len++;
+      }
+    }
+    return false;
+  }
+}
+
 
 
 
