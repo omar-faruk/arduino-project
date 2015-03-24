@@ -30,6 +30,9 @@ void loop() {
       dumpFile();
     }
   }
+  if(command=="attendance-mode"){
+    
+  }
 
   while (rfid.available() > 0) {
     c = rfid.read();
@@ -41,7 +44,7 @@ void loop() {
     if (tag == admin) {
       lcd.clear();
       lcd.setCursor(0,0);
-      lcd.println("attendence:");
+      lcd.println("attendance:");
     }
     if (tag == new_entry) {
       newEntry();
@@ -87,16 +90,12 @@ void dumpFile() {
     lcd.clear();
     lcd.setCursor(0,0);
     lcd.println("Dumping done!");
-    //Serial.println("Dumping Done!");
     dataFile.close();
   } 
-  //else Serial.println("error opening db.txt");
-
 }
 
 
 boolean isRegistered(String tag){
-
   String regTag;
   char c;
   int len=0;
