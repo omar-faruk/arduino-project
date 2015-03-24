@@ -1,20 +1,25 @@
 #include <SoftwareSerial.h>
+#include <LiquidCrystal.h>
 #include <SD.h>
 
 #define admin "0200736D928E" 
 #define new_entry "0200736D978B"
 
-SoftwareSerial rfid = SoftwareSerial(6, 8);
+LiquidCrystal lcd(8,7,6,5,3,2);
+SoftwareSerial rfid = SoftwareSerial(9, 13);
 char c;
 String tag, command;
 
 void setup() {
   Serial.begin(9600);
+  rfid.begin(9600);
   pinMode(4, OUTPUT);
+
   if (!SD.begin(4)) {
     return;
   }
-  rfid.begin(9600);
+  lcd.begin(20, 4);
+  lcd.setCursor(0,0);
 }
 
 void loop() {
@@ -22,7 +27,6 @@ void loop() {
   if (Serial.available()) {
     command = Serial.readString();
     if (command == "dump\n" || command == "dump") {
-      //Serial.println(command);
       dumpFile();
     }
   }
@@ -34,9 +38,10 @@ void loop() {
   tag = tag.substring(1, 13);
 
   if (tag.length() > 10) {
-    //Serial.println(tag);
     if (tag == admin) {
-      Serial.println("attendence:");
+      lcd.clear();
+      lcd.setCursor(0,0);
+      lcd.println("attendence:");
     }
     if (tag == new_entry) {
       newEntry();
@@ -49,7 +54,9 @@ void loop() {
 void newEntry() {
   delay(1000);
   tag="";
-  Serial.println("Ready to entry");
+  lcd.clear();
+  lcd.setCursor(0,0);
+  lcd.println("Ready to entry");
   rfid.flush();
   while(tag.length()<13){
     while (rfid.available() > 0) {
@@ -61,11 +68,12 @@ void newEntry() {
   if(!isRegistered(tag)){
     File dataFile=SD.open("db.txt",FILE_WRITE);
     if(dataFile){
-      Serial.println(tag);
       dataFile.println(tag);
       dataFile.close();
     }
-    Serial.println("Registry Complete");
+    lcd.clear();
+    lcd.setCursor(0,0);
+    lcd.println("Registration Complete");
   }
 }
 
@@ -73,11 +81,13 @@ void dumpFile() {
   File dataFile=SD.open("db.txt");
   if (dataFile) {
     while (dataFile.available()) {
-      //Serial.write(dataFile.read());
       String line=dataFile.readString();
       Serial.println(line);
     }
-    //Serial.println("Dumping done!");
+    lcd.clear();
+    lcd.setCursor(0,0);
+    lcd.println("Dumping done!");
+    //Serial.println("Dumping Done!");
     dataFile.close();
   } 
   //else Serial.println("error opening db.txt");
@@ -95,9 +105,10 @@ boolean isRegistered(String tag){
   if(dataFile){
     while(dataFile.available()){
       if(len==12){
-        Serial.println(regTag);
         if(regTag.equals(tag)){
-          Serial.println("Registered");
+          lcd.clear();
+          lcd.setCursor(0,0);
+          lcd.println("Registered");
           return true;
           break;
         }
@@ -113,7 +124,4 @@ boolean isRegistered(String tag){
     return false;
   }
 }
-
-
-
 
