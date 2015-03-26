@@ -1,10 +1,6 @@
 #include <SoftwareSerial.h>
 #include <LiquidCrystal.h>
 #include <SD.h>
-#include <SPI.h>
-
-#define admin "0200736D928E"
-#define new_entry "0200736D978B"
 
 LiquidCrystal lcd(8, 7, 6, 5, 3, 2);
 SoftwareSerial rfid = SoftwareSerial(9, 13);
