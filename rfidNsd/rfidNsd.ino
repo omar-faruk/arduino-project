@@ -28,6 +28,7 @@ void loop() {
     }
     if (command == "dump-atd\n" || command == "dump-atd") {
       dumpFile("atd.txt");
+      SD.remove("atd.txt");
     }
     if (command == "attendance-mode" || command == "attendance-mode\n") {
       mode = "atmode";
@@ -117,61 +118,72 @@ void dumpFile(char *fileName) {
 
 
 boolean isRegistered(String tag) {
-String regTag;
+  String regTag;
   char c;
   int len = 0;
-  File  dataFile = SD.open("db.txt");
-  if (dataFile) {
-    while (dataFile.available()) {
-      if (len == 12) {
-        if (regTag.equals(tag)) {
-          dataFile.close();
-          return true;
-          break;
+
+  if(SD.exists("db.txt")){
+    File  dataFile = SD.open("db.txt");
+    if (dataFile) {
+      while (dataFile.available()) {
+        if (len == 12) {
+          if (regTag.equals(tag)) {
+            dataFile.close();
+            return true;
+            break;
+          }
+          regTag = "";
+          len = 0;
         }
-        regTag = "";
-        len = 0;
-      }
-      else {
-        c = dataFile.read();
-        if((c>='0' && c<='9') || (c>='A' && c<='Z')){
-          regTag += c;
-          len++;
+        else {
+          c = dataFile.read();
+          if((c>='0' && c<='9') || (c>='A' && c<='Z')){
+            regTag += c;
+            len++;
+          }
         }
       }
+      dataFile.close();
+      return false;
     }
     dataFile.close();
+  }
+  else {
     return false;
   }
-  dataFile.close();
 }
 
 boolean Attended(){
   String regTag;
   char c;
   int len = 0;
-  File  dataFile = SD.open("atd.txt");
-  if (dataFile) {
-    while (dataFile.available()) {
-      if (len == 12) {
-        if (regTag.equals(tag)) {
-          dataFile.close();
-          return true;
-          break;
+  if(SD.exists("atd.txt")){
+    File  dataFile = SD.open("atd.txt");
+    if (dataFile) {
+      while (dataFile.available()) {
+        if (len == 12) {
+          if (regTag.equals(tag)) {
+            dataFile.close();
+            return true;
+            break;
+          }
+          regTag = "";
+          len = 0;
         }
-        regTag = "";
-        len = 0;
-      }
-      else {
-        c = dataFile.read();
-        if((c>='0' && c<='9') || (c>='A' && c<='Z')){
-          regTag += c;
-          len++;
+        else {
+          c = dataFile.read();
+          if((c>='0' && c<='9') || (c>='A' && c<='Z')){
+            regTag += c;
+            len++;
+          }
         }
       }
+      dataFile.close();
+      return false;
     }
-    dataFile.close();
-    return false;
   }
+  else return false;
 }
-
+void deRegistration(String tag){
+  //make changes here
+}
