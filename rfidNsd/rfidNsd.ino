@@ -49,34 +49,51 @@ void loop() {
 
 void newEntry() {
   File dataFile;
-  if (!isRegistered(tag)) {
-    if (mode == "regmode") {
+  if (mode == "regmode") {
+    if (!isRegistered(tag)) {
       dataFile = SD.open("db.txt", FILE_WRITE);
-    }
-    if (mode == "atmode") {
-      dataFile = SD.open("attendance.txt", FILE_WRITE);
-    }
-    if (dataFile) {
-      dataFile.println(tag);
-      dataFile.close();
-    }
-    lcd.clear();
-    if (mode == "regmode") {
+      if (dataFile) {
+        dataFile.println(tag);
+        dataFile.close();
+      }
+      lcd.clear();
       lcd.println("Registration Complete");
     }
-    if (mode == "atmode") {
-      lcd.println("Attendance Complete");
+    else{
+      lcd.clear();
+      lcd.println("Registered User");
     }
   }
 
+  else if(mode == "atmode"){
+    if (isRegistered(tag)) {
+      dataFile = SD.open("atd.txt", FILE_WRITE);
+      if (!Attended()) {
+        if(dataFile){
+          dataFile.println(tag);
+          dataFile.close();
+          lcd.clear();
+          lcd.println("Attendance Complete");
+        }
+      }
+      else {
+        lcd.clear();
+        lcd.println("Already Taken");
+      }
+    }
+    else{
+      lcd.clear();
+      lcd.println("User Not Registered");
+    }
+  }
   tag = "";
   delay(2000);
-  //lcd.clear();
+  lcd.clear();
   if (mode == "atmode") {
-    //lcd.println("Attendance Mode");
+    lcd.println("Attendance Mode");
   }
   if (mode == "regmode") {
-   // lcd.println("Registration Mode");
+    lcd.println("Registration Mode");
   }
 
 }
@@ -100,26 +117,12 @@ boolean isRegistered(String tag) {
   String regTag;
   char c;
   int len = 0;
-  File dataFile;
-  if (mode == "regmode") {
-    dataFile = SD.open("db.txt");
-  }
-  if (mode == "atmode") {
-    dataFile = SD.open("attendance.txt");
-  }
+  File  dataFile = SD.open("db.txt");
   if (dataFile) {
     while (dataFile.available()) {
       if (len == 12) {
-        Serial.println(tag);
         if (regTag.equals(tag)) {
-          lcd.clear();
-          lcd.setCursor(1, 1);
-          if (mode == "atmode") {
-            lcd.println("Attendance Completed");
-          }
-          if (mode == "regmode") {
-            lcd.println("Registered");
-          }
+          dataFile.close();
           return true;
           break;
         }
@@ -135,4 +138,35 @@ boolean isRegistered(String tag) {
     return false;
   }
 }
+
+boolean Attended(){
+  String regTag;
+  char c;
+  int len = 0;
+  File  dataFile = SD.open("atd.txt");
+  if (dataFile) {
+    while (dataFile.available()) {
+      if (len == 12) {
+        ;
+        if (regTag.equals(tag)) {
+          dataFile.close();
+          return true;
+          break;
+        }
+        regTag = "";
+        len = 0;
+      }
+      else {
+        c = dataFile.read();
+        regTag += c;
+        len++;
+      }
+    }
+    return false;
+  }
+}
+
+
+
+
 
