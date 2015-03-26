@@ -24,7 +24,10 @@ void loop() {
     command = Serial.readString();
     lcd.clear();
     if (command == "dump\n" || command == "dump") {
-      dumpFile();
+      dumpFile("db.txt");
+    }
+    if (command == "dump-atd\n" || command == "dump-atd") {
+      dumpFile("atd.txt");
     }
     if (command == "attendance-mode" || command == "attendance-mode\n") {
       mode = "atmode";
@@ -55,11 +58,11 @@ void newEntry() {
       if (dataFile) {
         dataFile.println(tag);
         dataFile.close();
+        lcd.clear();
+        lcd.println("Registration Complete");
       }
-      lcd.clear();
-      lcd.println("Registration Complete");
     }
-    else{
+    else if (isRegistered(tag)){
       lcd.clear();
       lcd.println("Registered User");
     }
@@ -76,12 +79,12 @@ void newEntry() {
           lcd.println("Attendance Complete");
         }
       }
-      else {
+      else if (Attended()){
         lcd.clear();
         lcd.println("Already Taken");
       }
     }
-    else{
+    else if(!isRegistered(tag)){
       lcd.clear();
       lcd.println("User Not Registered");
     }
@@ -98,8 +101,8 @@ void newEntry() {
 
 }
 
-void dumpFile() {
-  File dataFile = SD.open("db.txt");
+void dumpFile(char *fileName) {
+  File dataFile = SD.open(fileName);
   if (dataFile) {
     while (dataFile.available()) {
       String line = dataFile.readString();
@@ -114,7 +117,7 @@ void dumpFile() {
 
 
 boolean isRegistered(String tag) {
-  String regTag;
+String regTag;
   char c;
   int len = 0;
   File  dataFile = SD.open("db.txt");
@@ -131,12 +134,16 @@ boolean isRegistered(String tag) {
       }
       else {
         c = dataFile.read();
-        regTag += c;
-        len++;
+        if((c>='0' && c<='9') || (c>='A' && c<='Z')){
+          regTag += c;
+          len++;
+        }
       }
     }
+    dataFile.close();
     return false;
   }
+  dataFile.close();
 }
 
 boolean Attended(){
@@ -147,7 +154,6 @@ boolean Attended(){
   if (dataFile) {
     while (dataFile.available()) {
       if (len == 12) {
-        ;
         if (regTag.equals(tag)) {
           dataFile.close();
           return true;
@@ -158,15 +164,14 @@ boolean Attended(){
       }
       else {
         c = dataFile.read();
-        regTag += c;
-        len++;
+        if((c>='0' && c<='9') || (c>='A' && c<='Z')){
+          regTag += c;
+          len++;
+        }
       }
     }
+    dataFile.close();
     return false;
   }
 }
-
-
-
-
 
