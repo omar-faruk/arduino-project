@@ -35,7 +35,7 @@ class MessengerGUI:
 			while(arduino.inWaiting()>=11):
 				sms=arduino.readline()
 				f.write(sms)
-				print sms
+				print (sms)
 				count=count+1
 			if(count<2):
 					self.showBox.set_text("Missed timing, try again")
