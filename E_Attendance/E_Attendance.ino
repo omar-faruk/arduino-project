@@ -32,18 +32,22 @@ void loop() {
     }
     else if (command == "attendance-mode" || command == "attendance-mode\n") {
       mode = "atmode";
+      lcd.clear();
       lcd.print("Attendance Mode");
     }
     else if (command == "registration-mode" || command == "registration-mode\n") {
       mode = "regmode";
+      lcd.clear();
       lcd.print("Registration Mode");
     }
     else if (command == "deregistration-mode" || command == "deregistration-mode\n") {
       mode = "dregmode";
+      lcd.clear();
       lcd.print("De-Registration Mode");
     }
     else if(command=="cleardb" || command=="cleardb\n"){
       SD.remove("db.txt");
+      lcd.clear();
       lcd.print("Database Cleared");
     }
   }
@@ -61,7 +65,6 @@ void loop() {
       deRegistration(tag);
     }
   }
-  delay(50);
 }
 
 void newEntry() {
