@@ -46,7 +46,7 @@ class MessengerGUI:
 	def on_cleardb_clicked(self,button):
 		global arduino
 		try:
-			arduino.write("cleardb")
+			arduino.write("clear-db")
 			self.showBox.set_text("SD database cleared")
 		except:
 			self.showBox.set_text("Failed to clear SD database")
