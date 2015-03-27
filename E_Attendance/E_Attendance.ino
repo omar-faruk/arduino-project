@@ -26,26 +26,26 @@ void loop() {
     if (command == "dump\n" || command == "dump") {
       dumpFile("db.txt");
     }
-    else if (command == "dump-atd\n" || command == "dump-atd") {
+    if (command == "dump-atd\n" || command == "dump-atd") {
       dumpFile("atd.txt");
       SD.remove("atd.txt");
     }
-    else if (command == "attendance-mode" || command == "attendance-mode\n") {
+    if (command == "attendance-mode" || command == "attendance-mode\n") {
       mode = "atmode";
       lcd.clear();
       lcd.print("Attendance Mode");
     }
-    else if (command == "registration-mode" || command == "registration-mode\n") {
+    if (command == "registration-mode" || command == "registration-mode\n") {
       mode = "regmode";
       lcd.clear();
       lcd.print("Registration Mode");
     }
-    else if (command == "deregistration-mode" || command == "deregistration-mode\n") {
+    if (command == "deregistration-mode" || command == "deregistration-mode\n") {
       mode = "dregmode";
       lcd.clear();
       lcd.print("De-Registration Mode");
     }
-    else if(command=="cleardb" || command=="cleardb\n"){
+    if(command=="cleardb" || command=="cleardb\n"){
       SD.remove("db.txt");
       lcd.clear();
       lcd.print("Database Cleared");
@@ -119,16 +119,23 @@ void newEntry() {
 }
 
 void dumpFile(char *fileName) {
-  File dataFile = SD.open(fileName);
-  if (dataFile) {
-    while (dataFile.available()) {
-      String line = dataFile.readString();
-      Serial.println(line);
+  
+  if(SD.exists(fileName)){
+    File dataFile = SD.open(fileName);
+    if (dataFile) {
+      while (dataFile.available()) {
+        String line = dataFile.readString();
+        Serial.println(line);
+      }
+      lcd.clear();
+      lcd.setCursor(0, 0);
+      lcd.print("Dumping done!");
+      dataFile.close();
     }
+  }
+  else {
     lcd.clear();
-    lcd.setCursor(0, 0);
-    lcd.print("Dumping done!");
-    dataFile.close();
+    lcd.print("File Not Exists");
   }
 }
 
@@ -200,7 +207,7 @@ boolean Attended() {
   }
   else return false;
 }
-//Fix bugs here
+
 void deRegistration(String tag) {
   File dataFile=SD.open("db.txt");
   String data,d1,d2;
@@ -231,5 +238,6 @@ void deRegistration(String tag) {
   lcd.clear();
   lcd.print("De-Registration Mode");
 }
+
 
 

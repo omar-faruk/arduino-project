@@ -28,7 +28,7 @@
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
-                <property name="margin_bottom">21</property>
+                <property name="margin_bottom">17</property>
                 <property name="relief">half</property>
                 <property name="yalign">0.49000000953674316</property>
                 <signal name="clicked" handler="on_connect_clicked" swapped="no"/>
@@ -41,12 +41,14 @@
             </child>
             <child>
               <object class="GtkButton" id="dump">
-                <property name="label" translatable="yes">Dump File</property>
+                <property name="label" translatable="yes">       Dump File        </property>
+                <property name="width_request">50</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
+                <property name="halign">center</property>
+                <property name="margin_bottom">5</property>
                 <property name="relief">half</property>
-                <property name="yalign">0.49000000953674316</property>
                 <signal name="clicked" handler="on_dump_clicked" swapped="no"/>
               </object>
               <packing>
@@ -57,10 +59,13 @@
             </child>
             <child>
               <object class="GtkButton" id="registration">
-                <property name="label" translatable="yes">Registration Mode</property>
+                <property name="label" translatable="yes">  Registration Mode  </property>
+                <property name="width_request">50</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
+                <property name="halign">center</property>
+                <property name="margin_bottom">5</property>
                 <signal name="clicked" handler="on_registration_clicked" swapped="no"/>
               </object>
               <packing>
@@ -71,10 +76,13 @@
             </child>
             <child>
               <object class="GtkButton" id="attendance">
-                <property name="label" translatable="yes">Attendance Mode</property>
+                <property name="label" translatable="yes">  Attendance Mode  </property>
+                <property name="width_request">50</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
+                <property name="halign">center</property>
+                <property name="margin_bottom">5</property>
                 <signal name="clicked" handler="on_attendance_clicked" swapped="no"/>
               </object>
               <packing>
@@ -86,9 +94,12 @@
             <child>
               <object class="GtkButton" id="deregistration">
                 <property name="label" translatable="yes">De-Registration Mode</property>
+                <property name="width_request">50</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
+                <property name="halign">center</property>
+                <property name="margin_bottom">5</property>
                 <signal name="clicked" handler="on_deregistration_clicked" swapped="no"/>
               </object>
               <packing>
@@ -99,10 +110,12 @@
             </child>
             <child>
               <object class="GtkButton" id="cleardb">
-                <property name="label" translatable="yes">Clear SD Database</property>
+                <property name="label" translatable="yes">  Clear SD Database   </property>
+                <property name="width_request">50</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
+                <property name="halign">center</property>
                 <signal name="clicked" handler="on_cleardb_clicked" swapped="no"/>
               </object>
               <packing>
@@ -115,12 +128,15 @@
               <object class="GtkLabel" id="receive_box">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
+                <property name="halign">baseline</property>
                 <property name="margin_right">4</property>
                 <property name="margin_top">27</property>
                 <property name="margin_bottom">1</property>
                 <property name="selectable">True</property>
-                <property name="ellipsize">start</property>
                 <property name="lines">1</property>
+                <attributes>
+                  <attribute name="font-desc" value="Times New Roman, 15"/>
+                </attributes>
               </object>
               <packing>
                 <property name="expand">True</property>

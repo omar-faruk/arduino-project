@@ -79,7 +79,7 @@ class MessengerGUI:
 					print sms
 					count=count+1
 			if(count<1):
-					self.showBox.set_text("Missed timing, try again")
+					self.showBox.set_text("Data File may not exists,\n check device display? ")
 			else:
 				f.close()
 				self.showBox.set_text("Dumping Complete")
