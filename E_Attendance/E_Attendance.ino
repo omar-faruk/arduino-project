@@ -5,7 +5,7 @@
 LiquidCrystal lcd(8, 7, 6, 5, 3, 2);
 SoftwareSerial rfid = SoftwareSerial(9, 13);
 char c;
-String tag = "", command, mode;
+String tag = "", command, mode="";
 
 void setup() {
   Serial.begin(9600);
@@ -32,16 +32,37 @@ void loop() {
     }
     if (command == "attendance-mode" || command == "attendance-mode\n") {
       mode = "atmode";
+      SD.remove("mode.txt");
+      SD.open("mode",FILE_WRITE);
+      File modeSelector=SD.open("mode.txt",FILE_WRITE);
+      if(modeSelector){
+        modeSelector.print("atmode");
+        modeSelector.close();
+      }
       lcd.clear();
       lcd.print("Attendance Mode");
     }
     if (command == "registration-mode" || command == "registration-mode\n") {
       mode = "regmode";
+       SD.remove("mode.txt");
+      SD.open("mode",FILE_WRITE);
+      File modeSelector=SD.open("mode.txt",FILE_WRITE);
+      if(modeSelector){
+        modeSelector.print("regmode");
+        modeSelector.close();
+      }
       lcd.clear();
       lcd.print("Registration Mode");
     }
     if (command == "deregistration-mode" || command == "deregistration-mode\n") {
       mode = "dregmode";
+      SD.remove("mode.txt");
+      SD.open("mode",FILE_WRITE);
+      File modeSelector=SD.open("mode.txt");
+      if(modeSelector){
+        modeSelector.print("dregmode");
+        modeSelector.close();
+      }
       lcd.clear();
       lcd.print("De-Registration Mode");
     }
@@ -51,6 +72,27 @@ void loop() {
       lcd.print("Database Cleared");
     }
   }
+    if(SD.exists("mode.txt") && mode==""){
+    File modeSelector=SD.open("mode.txt");
+    if(modeSelector){
+      mode=modeSelector.readString();
+      modeSelector.close();
+    }
+    lcd.clear();
+    if(mode == "atmode" || mode == "atmode\n") {
+      mode = "atmode";
+      lcd.print("Attendance Mode");
+    }
+    else if (mode == "regmode" || mode == "regmode\n") {
+      mode = "regmode";
+      lcd.print("Registration Mode");
+    }
+    else if (mode == "dregmode" || mode == "dregmode\n") {
+      mode = "dregmode";
+      lcd.print("De-Registration Mode");
+    }
+  }
+  
   while (rfid.available() > 0) {
     c = rfid.read();
     tag += c;
