@@ -2,7 +2,7 @@
 #include <LiquidCrystal.h>
 #include <SD.h>
 
-LiquidCrystal lcd(10, 7, 6, 5, 3, 2);
+LiquidCrystal lcd(8, 7, 6, 5, 3, 2); //set 1st pin to 8 if ethernet shield else set to 10
 SoftwareSerial rfid = SoftwareSerial(9, 13);
 char c;
 String tag = "", command, mode="";
@@ -10,13 +10,27 @@ String tag = "", command, mode="";
 void setup() {
   Serial.begin(9600);
   rfid.begin(9600);
-  pinMode(8, OUTPUT); //set it to 4 when using ether+sd else set to 8
+  pinMode(4, OUTPUT); //output pin mode 8 on sd shield else pin 4
 
-  if (!SD.begin(8)) { //chip select pin in sd shield
+  if (!SD.begin(4)) {  //chip select on pin 8 in sd shield else pin 4
     return;
   }
   lcd.begin(20, 4);
   lcd.setCursor(0, 0);
+}
+
+void processTag(){
+  tag+='c';
+  int i;
+  for(i=tag.length()-1;i>7;i--){
+    tag[i]=tag[i-1];
+  }
+  tag[8]='.';
+}
+
+void toChar(char result[],String value){
+  value.toCharArray(result,13);
+  Serial.println(result);
 }
 
 void loop() {
@@ -44,7 +58,7 @@ void loop() {
     }
     if (command == "registration-mode" || command == "registration-mode\n") {
       mode = "regmode";
-       SD.remove("mode.txt");
+      SD.remove("mode.txt");
       SD.open("mode",FILE_WRITE);
       File modeSelector=SD.open("mode.txt",FILE_WRITE);
       if(modeSelector){
@@ -72,7 +86,7 @@ void loop() {
       lcd.print("Database Cleared");
     }
   }
-    if(SD.exists("mode.txt") && mode==""){
+  if(SD.exists("mode.txt") && mode==""){
     File modeSelector=SD.open("mode.txt");
     if(modeSelector){
       mode=modeSelector.readString();
@@ -92,14 +106,15 @@ void loop() {
       lcd.print("De-Registration Mode");
     }
   }
-  
+
   while (rfid.available() > 0) {
     c = rfid.read();
     tag += c;
   }
-  tag = tag.substring(1, 13);
+  String temp= tag.substring(2, 13);
+  tag=temp;
   if (tag.length() > 10) {
-    Serial.println(tag);
+    processTag();
     if (mode == "regmode" || mode == "atmode") {
       newEntry();
     }
@@ -111,9 +126,12 @@ void loop() {
 
 void newEntry() {
   File dataFile;
+  char *charTag=(char*) malloc(tag.length());
+  toChar(charTag,tag);
+  Serial.println(charTag);
   if (mode == "regmode") {
     if (!isRegistered(tag)) {
-      dataFile = SD.open("db.txt", FILE_WRITE);
+      dataFile = SD.open(charTag, FILE_WRITE);
       if (dataFile) {
         dataFile.println(tag);
         dataFile.close();
@@ -157,11 +175,11 @@ void newEntry() {
   if (mode == "regmode") {
     lcd.print("Registration Mode");
   }
-
+  free(charTag);
 }
 
 void dumpFile(char *fileName) {
-  
+
   if(SD.exists(fileName)){
     File dataFile = SD.open(fileName);
     if (dataFile) {
@@ -183,37 +201,15 @@ void dumpFile(char *fileName) {
 
 
 boolean isRegistered(String tag) {
-  String regTag;
-  char c;
-  int len = 0;
-
-  if (SD.exists("db.txt")) {
-    File  dataFile = SD.open("db.txt");
-    if (dataFile) {
-      while (dataFile.available()) {
-        if (len == 12) {
-          if (regTag.equals(tag)) {
-            dataFile.close();
-            return true;
-            break;
-          }
-          regTag = "";
-          len = 0;
-        }
-        else {
-          c = dataFile.read();
-          if ((c >= '0' && c <= '9') || (c >= 'A' && c <= 'Z')) {
-            regTag += c;
-            len++;
-          }
-        }
-      }
-      dataFile.close();
-      return false;
-    }
-    dataFile.close();
+  char *charTag=(char*) malloc(tag.length());
+  toChar(charTag,tag);
+  Serial.println(charTag);
+  if(SD.exists(charTag)){
+    free(charTag);
+    return true;
   }
   else {
+    free(charTag);
     return false;
   }
 }
@@ -237,7 +233,7 @@ boolean Attended() {
         }
         else {
           c = dataFile.read();
-          if ((c >= '0' && c <= '9') || (c >= 'A' && c <= 'Z')) {
+          if ((c >= '0' && c <= '9') || (c >= 'A' && c <= 'Z') || c=='.') {
             regTag += c;
             len++;
           }
@@ -251,28 +247,19 @@ boolean Attended() {
 }
 
 void deRegistration(String tag) {
-  File dataFile=SD.open("db.txt");
-  String data,d1,d2;
-  int index;
+  char *charTag=(char*) malloc(tag.length());
+  toChar(charTag,tag);
 
-  if(dataFile){
-    data=dataFile.readString();
-    dataFile.close();
-  }
-  index=data.indexOf(tag);
-  if(index>=0){
-    d1=data.substring(0,index);
-    d2=data.substring(data.indexOf(tag)+12,data.length());
-    SD.remove("db.txt");
-    dataFile=SD.open("db.txt",FILE_WRITE);
-    if(dataFile){
-      dataFile.print(d1+d2);
-      dataFile.close();
-    }
+  Serial.println(charTag);
+
+  if(SD.exists(charTag)){
+    SD.remove(charTag);
     lcd.clear();
-    lcd.print(tag+" deRegistered");
+    lcd.println("User de-registered");
+    free(charTag);
   }
   else{
+    free(charTag);
     lcd.clear();
     lcd.print("User not Found");
   }
@@ -280,6 +267,3 @@ void deRegistration(String tag) {
   lcd.clear();
   lcd.print("De-Registration Mode");
 }
-
-
-
