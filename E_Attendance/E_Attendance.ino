@@ -2,7 +2,7 @@
 #include <LiquidCrystal.h>
 #include <SD.h>
 
-LiquidCrystal lcd(8, 7, 6, 5, 3, 2); //set 1st pin to 8 if ethernet shield else set to 10
+LiquidCrystal lcd(10, 7, 6, 5, 3, 2); //set 1st pin to 8 if ethernet shield else set to 10
 SoftwareSerial rfid = SoftwareSerial(9, 13);
 char c;
 String tag = "", command, mode="";
@@ -10,9 +10,9 @@ String tag = "", command, mode="";
 void setup() {
   Serial.begin(9600);
   rfid.begin(9600);
-  pinMode(4, OUTPUT); //output pin mode 8 on sd shield else pin 4
+  pinMode(8, OUTPUT); //output pin mode 8 on sd shield else pin 4
 
-  if (!SD.begin(4)) {  //chip select on pin 8 in sd shield else pin 4
+  if (!SD.begin(8)) {  //chip select on pin 8 in sd shield else pin 4
     return;
   }
   lcd.begin(20, 4);
