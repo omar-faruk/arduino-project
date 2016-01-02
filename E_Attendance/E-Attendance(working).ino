@@ -6,13 +6,14 @@
 
 LiquidCrystal lcd(10, 7, 6, 5, 3, 2); //set 1st pin to 8 if ethernet shield else set to 10
 SoftwareSerial rfid = SoftwareSerial(9, 13);
-int button_data,course_count;
+int button_data,course_count,dateConfirmed;
 SdFat SD;
 
 void setup() {
 	Serial.begin(9600);
 	rfid.begin(9600);
 	course_count=0;
+	dateConfirmed=0;
 	pinMode(8, OUTPUT); //output pin mode 8 on sd shield else pin 4
 	if (!SD.begin(8)) {  //chip select on pin 8 in sd shield else pin 4
 		return;
@@ -20,7 +21,23 @@ void setup() {
 	initCourseList();
 	lcd.begin(20, 4);
 	lcd.setCursor(0, 0);
-	lcd.print("Ready");
+	if(date.length()<3 && SD.exists("date.txt")){
+		File dateFile=SD.open("date.txt");
+		if(dateFile){
+		char cc;
+		int len=8;
+			while(dateFile.available() && len>=1){
+				cc=dateFile.read();
+				date+=cc;
+				len--;
+			}
+		dateFile.close();
+		}
+		dateFile.close();
+		lcd.clear();
+		lcd.print("Today: ");
+		lcd.print(date);
+	}
 }
 
 
@@ -32,10 +49,33 @@ void loop() {
 			dumpFile("atd.txt");
 			SD.remove("atd.txt");
 		}
+		
+		if(dateConfirmed==0){
+			/*/This piece of block makes every thing bullshit...... grrrrr....
+			 if(command[0]=='d' && command[1]=='t'){
+				String dt;
+				int i=2;
+				for(i=2;i<command.length();i++){
+					dt+=command[i];
+				}
+				if(SD.exists("date.txt")){
+					SD.remove("date.txt");
+				}
+				SdFile setDate;
+				if(setDate.open("date.txt",O_RDWR | O_CREAT | O_AT_END)){
+					lcd.print(dt);
+					setDate.print(dt);
+					setDate.close();
+				}
+				setDate.close();
+			}
+			*///
+			dateConfirmed=1;
+			command="";
+		}
 	}
 	
-	button_data=analogRead(1);
-
+	button_data=analogRead(3);
 	if(button_data<=80){
 		mode="atmode";
 		lcd.clear();
@@ -95,7 +135,7 @@ void newEntry() {
 		if (!isRegistered(dirTag)) {
 			dataFile = SD.open(charTag, FILE_WRITE);
 			if (dataFile) {
-				dataFile.println("");
+				dataFile.print("");
 				Serial.println(charTag);
 				dataFile.close();
 				lcd.clear();
@@ -109,22 +149,26 @@ void newEntry() {
 	}
 
 	else if (mode == "atmode") {
-		if (isRegistered(tag)) {
-			dataFile = SD.open("atd.txt", FILE_WRITE);
-			if (!Attended()) {
-				if (dataFile) {
-					dataFile.println(tag);
-					dataFile.close();
+		if (isRegistered(dirTag)) {
+			if(!Attended(dirTag)){
+				SdFile uid;
+				if(uid.open(charTag,O_RDWR | O_CREAT | O_AT_END)){
+					uid.println(date);
+					uid.close();
 					lcd.clear();
 					lcd.print("Attendance Complete");
 				}
+				else{
+					Serial.println("Cannot open File!!");
+				}
+				
 			}
-			else if (Attended()) {
+			else if (Attended(dirTag)) {
 				lcd.clear();
 				lcd.print("Already Taken");
 			}
 		}
-		else if (!isRegistered(tag)) {
+		else if (!isRegistered(dirTag)) {
 			lcd.clear();
 			lcd.print("User Not Registered");
 		}
@@ -183,36 +227,41 @@ boolean isRegistered(String tag) {
 	}
 }
 
-boolean Attended() {
-	String regTag;
+boolean Attended(String dirTag) {
+	
+	char *charTag=(char*) malloc(dirTag.length());
+	toChar(charTag,dirTag);
+	String atDate;
 	char c;
-	int len = 0;
-	if (SD.exists("atd.txt")) {
-		File  dataFile = SD.open("atd.txt");
-		if (dataFile) {
-			while (dataFile.available()) {
-				if (len == 12) {
-					if (regTag.equals(tag)) {
-						dataFile.close();
-						return true;
-						break;
-					}
-					regTag = "";
-					len = 0;
-				}
-				else {
-					c = dataFile.read();
-					if ((c >= '0' && c <= '9') || (c >= 'A' && c <= 'Z') || c=='.') {
-						regTag += c;
-						len++;
-					}
-				}
+	boolean flag=0;
+	SdFile oid;
+	
+	if(oid.open(charTag,O_READ)){
+		while(oid.available()){
+			c=oid.read();
+			if(isNum(c)){
+				atDate+=c;
 			}
-			dataFile.close();
-			return false;
+			if(atDate.length()==8){
+				Serial.println(atDate);
+				if(atDate==date){
+					flag=1;
+					atDate="";
+					break;
+				}
+				atDate="";
+			}
 		}
 	}
-	else return false;
+	else{
+		Serial.println("Failed to open File");
+		return 1;
+	}
+	oid.close();
+	free(charTag);
+	Serial.print("Returninng at Flag ");
+	Serial.println(flag);
+	return flag;
 }
 
 void deRegistration(String tag) {
