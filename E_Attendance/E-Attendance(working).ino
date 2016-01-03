@@ -100,10 +100,10 @@ void loop() {
 		lcd.print("Course: CSE-"+course[course_count]);
 		course_count++;
 	}
-	
+	char ct;
 	while (rfid.available() > 0) {
-		c = rfid.read();
-		tag += c;
+		ct = rfid.read();
+		tag += ct;
 	}
 
 	String temp= tag.substring(2, 13);
@@ -149,7 +149,7 @@ void newEntry() {
 	}
 
 	else if (mode == "atmode") {
-		if (isRegistered(dirTag)) {
+		if (isRegistered(dirTag)){
 			if(!Attended(dirTag)){
 				SdFile uid;
 				if(uid.open(charTag,O_RDWR | O_CREAT | O_AT_END)){
@@ -161,6 +161,7 @@ void newEntry() {
 				else{
 					Serial.println("Cannot open File!!");
 				}
+				uid.close();
 				
 			}
 			else if (Attended(dirTag)) {
@@ -208,13 +209,14 @@ void dumpFile(char *fileName) {
 }
 
 
-boolean isRegistered(String tag) {
+boolean isRegistered(String ptag) {
 	SD.chdir("/");
     char *dir=(char*)malloc(course[course_count-1].length());
     toChar(dir,course[course_count-1]);
     SD.chdir(dir);
-	char *charTag=(char*) malloc(tag.length());
-	toChar(charTag,tag);
+	char *charTag=(char*) malloc(ptag.length());
+	toChar(charTag,ptag);
+	Serial.println("Checking existance "+ptag);
 	if(SD.exists(charTag)){
 		free(charTag);
 		free(dir);
@@ -232,15 +234,15 @@ boolean Attended(String dirTag) {
 	char *charTag=(char*) malloc(dirTag.length());
 	toChar(charTag,dirTag);
 	String atDate;
-	char c;
+	char cdt;
 	boolean flag=0;
 	SdFile oid;
 	
 	if(oid.open(charTag,O_READ)){
 		while(oid.available()){
-			c=oid.read();
-			if(isNum(c)){
-				atDate+=c;
+			cdt=oid.read();
+			if(isNum(cdt)){
+				atDate+=cdt;
 			}
 			if(atDate.length()==8){
 				Serial.println(atDate);
@@ -252,6 +254,7 @@ boolean Attended(String dirTag) {
 				atDate="";
 			}
 		}
+		oid.close();
 	}
 	else{
 		Serial.println("Failed to open File");
@@ -264,14 +267,13 @@ boolean Attended(String dirTag) {
 	return flag;
 }
 
-void deRegistration(String tag) {
+void deRegistration(String ptag) {
 	SD.chdir("/");
-	char *charTag=(char*) malloc(tag.length());
-	toChar(charTag,tag);
+	char *charTag=(char*) malloc(ptag.length());
+	toChar(charTag,ptag);
 	char *dir=(char*)malloc(course[course_count-1].length());
     toChar(dir,course[course_count-1]);
     SD.chdir(dir);
-	Serial.println(charTag);
 
 	if(SD.exists(charTag)){
 		SD.remove(charTag);
