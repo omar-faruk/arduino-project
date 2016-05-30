@@ -22,10 +22,11 @@ void setup() {
 	initCourseList();
 	lcd.begin(20, 4);
 	lcd.setCursor(0, 0);
-	if(date.length()<3 && SD.exists("date.txt")){
+	if(date.length()<7 && SD.exists("date.txt")){
 		if(file.open("date.txt",O_READ)){
 		char cc;
 		int len=8;
+		date="";
 			while(file.available() && len>=1){
 				cc=file.read();
 				date+=cc;
@@ -37,6 +38,7 @@ void setup() {
 		lcd.clear();
 		lcd.print("Today: ");
 		lcd.print(date);
+		Serial.println(date+" "+date.length());
 	}
 }
 
@@ -50,12 +52,12 @@ void loop() {
 			//SD.remove("atd.txt");
 		}
 		if(dateConfirmed==0){
-			//This piece of block makes every thing bullshit...... grrrrr....
+			  
 			if(command[0]=='d' && command[1]=='t'){
-				String dt;
+				char *charDate=(char*)malloc(8);
 				int i=2;
 				for(i=2;i<command.length();i++){
-					dt+=command[i];
+					charDate[i-2]=command[i];
 				}
 				SD.chdir("/");
 				if(SD.exists("date.txt")){
@@ -63,17 +65,18 @@ void loop() {
 				}
 				if(file.open("date.txt",O_RDWR | O_CREAT | O_AT_END)){
 					lcd.clear();
-					lcd.print(dt);
-					file.print(dt);
+					lcd.print(charDate);
+					file.println(charDate);
 					file.close();
+					Serial.println(charDate);
+					free(charDate);
 				}
-				file.close();
 			}
 		
 			dateConfirmed=1;
 			command="";
 		}
-		//*/
+		
 	}
 	button_data=analogRead(3);
 	if(button_data<=80){
@@ -129,13 +132,15 @@ void loop() {
 
 void newEntry() {
 	String dirTag=tag;
-	SD.chdir("/");
+	
+	 SD.chdir("/");
 	char *dir=(char*)malloc(course[course_count-1].length());
     toChar(dir,course[course_count-1]);
     SD.chdir(dir);
+    
 	char *charTag=(char*) malloc(dirTag.length());
 	toChar(charTag,dirTag);
-	Serial.println(course[course_count-1]+" "+dirTag);
+	Serial.println(dir);
 	if (mode == "regmode") {
 		if (!isRegistered(dirTag)) {
 			if (file.open(charTag,O_RDWR | O_CREAT | O_AT_END)) {
@@ -212,19 +217,23 @@ void dumpFile(String directory) {
 
 
 boolean isRegistered(String ptag) {
-	SD.chdir("/");
+	
+	 SD.chdir("/");
     char *dir=(char*)malloc(course[course_count-1].length());
     toChar(dir,course[course_count-1]);
     SD.chdir(dir);
+    
     char *charTag=(char*) malloc(ptag.length());
 	toChar(charTag,ptag);
-	Serial.println("Checking existance "+ptag);
+	Serial.print("Checking existance "+ptag);
 	if(SD.exists(charTag)){
+		Serial.println(".... registered");
 		free(charTag);
 		free(dir);
 		return true;
 	}
 	else {
+		Serial.println(".... not registered");
 		free(charTag);
 		free(dir);
 		return false;
@@ -245,7 +254,7 @@ boolean Attended(String dirTag) {
 				atDate+=cdt;
 			}
 			if(atDate.length()==8){
-				Serial.println(atDate);
+				Serial.println(atDate+" "+date);
 				if(atDate==date){
 					flag=1;
 					atDate="";
@@ -268,13 +277,17 @@ boolean Attended(String dirTag) {
 }
 
 void deRegistration(String ptag) {
-	SD.chdir("/");
+	
 	char *charTag=(char*) malloc(ptag.length());
 	toChar(charTag,ptag);
+	
+	
+	SD.chdir("/");
 	char *dir=(char*)malloc(course[course_count-1].length());
     toChar(dir,course[course_count-1]);
     SD.chdir(dir);
-
+	
+	
 	if(SD.exists(charTag)){
 		SD.remove(charTag);
 		lcd.clear();
