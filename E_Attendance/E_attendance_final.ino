@@ -7,12 +7,14 @@
 LiquidCrystal lcd(10, 7, 6, 5, 3, 2); //set 1st pin to 8 if ethernet shield else set to 10
 SoftwareSerial rfid = SoftwareSerial(9, 13);
 int button_data,course_count,dateConfirmed;
+int MAX_COURSE;
 SdFat SD;
+SdFile file;
 
 void setup() {
 	Serial.begin(9600);
 	rfid.begin(9600);
-	course_count=0;
+	MAX_COURSE=course_count=0;
 	dateConfirmed=0;
 	pinMode(8, OUTPUT); //output pin mode 8 on sd shield else pin 4
 	if (!SD.begin(8)) {  //chip select on pin 8 in sd shield else pin 4
@@ -21,60 +23,84 @@ void setup() {
 	initCourseList();
 	lcd.begin(20, 4);
 	lcd.setCursor(0, 0);
-	if(date.length()<3 && SD.exists("date.txt")){
-		File dateFile=SD.open("date.txt");
-		if(dateFile){
+	if(date.length()<7 && SD.exists("date.txt")){
+		if(file.open("date.txt",O_READ)){
 		char cc;
 		int len=8;
-			while(dateFile.available() && len>=1){
-				cc=dateFile.read();
+		date="";
+			while(file.available() && len>=1){
+				cc=file.read();
 				date+=cc;
 				len--;
 			}
-		dateFile.close();
+		file.close();
 		}
-		dateFile.close();
+		file.close();
 		lcd.clear();
 		lcd.print("Today: ");
 		lcd.print(date);
+		Serial.println(date+" "+date.length());
 	}
 }
 
 
 void loop() {
-	if (Serial.available()) {
+	
+	if (Serial.available()>0){
 		command = Serial.readString();
-		lcd.clear();
-		if (command == "dump-atd\n" || command == "dump-atd") {
-			dumpFile("atd.txt");
-			SD.remove("atd.txt");
+		if (command[0]=='d' && command[1]=='u' && command[2]=='m' && command[3]=='p'){
+			dumpFile(course[course_count-1]);
+			//SD.remove("atd.txt");
+		}
+		
+		if(command[0]=='c' && command[1]=='r'){
+			
+			char *courseCodes=(char*)malloc(command.length()-3);
+			int j=0,i;
+			for(i=2;i<command.length();i++){
+				courseCodes[j]=command[i];
+				j++;
+			}
+			if(SD.exists("courses.lst")){
+				SD.remove("courses.lst");
+			}
+			if(file.open("courses.lst",O_RDWR | O_CREAT | O_AT_END)){
+				lcd.clear();
+				lcd.print(courseCodes);
+				file.print(courseCodes);
+				file.close();
+				Serial.println(courseCodes);
+				free(courseCodes);
+			}
 		}
 		
 		if(dateConfirmed==0){
-			/*/This piece of block makes every thing bullshit...... grrrrr....
-			 if(command[0]=='d' && command[1]=='t'){
-				String dt;
+			  
+			if(command[0]=='d' && command[1]=='t'){
+				char *charDate=(char*)malloc(8);
 				int i=2;
 				for(i=2;i<command.length();i++){
-					dt+=command[i];
+					charDate[i-2]=command[i];
 				}
+				SD.chdir("/");
 				if(SD.exists("date.txt")){
 					SD.remove("date.txt");
 				}
-				SdFile setDate;
-				if(setDate.open("date.txt",O_RDWR | O_CREAT | O_AT_END)){
-					lcd.print(dt);
-					setDate.print(dt);
-					setDate.close();
+				if(file.open("date.txt",O_RDWR | O_CREAT | O_AT_END)){
+					lcd.clear();
+					lcd.print(charDate);
+					file.println(charDate);
+					file.close();
+					Serial.println(charDate);
+					free(charDate);
 				}
-				setDate.close();
 			}
-			*///
+		
 			dateConfirmed=1;
 			command="";
 		}
+		
 	}
-	
 	button_data=analogRead(3);
 	if(button_data<=80){
 		mode="atmode";
@@ -86,13 +112,13 @@ void loop() {
 		lcd.clear();
 		lcd.print("De-registration Mode");
 	}
-	else if(button_data>=500 && button_data<=600){
+	else if(button_data>=450 && button_data<=550){
 		mode="regmode";
 		lcd.clear();
 		lcd.print("Registration Mode");
 	}
-	else if(button_data>=700 && button_data<=800){
-		if(course_count==5){
+	else if(button_data>=600 && button_data<=700){
+		if(course_count==MAX_COURSE){
 			course_count=0;
 		}
 		mode="";
@@ -100,12 +126,18 @@ void loop() {
 		lcd.print("Course: CSE-"+course[course_count]);
 		course_count++;
 	}
+	else if(button_data>800 && button_data<900){
+		Serial.println("Start dumping: "+course[course_count-1]);
+		dumpFile(course[course_count-1]);
+		
+	}
+	
 	char ct;
 	while (rfid.available() > 0) {
 		ct = rfid.read();
 		tag += ct;
 	}
-
+	
 	String temp= tag.substring(2, 13);
 	tag=temp;
 	if (tag.length() > 10) {
@@ -122,22 +154,22 @@ void loop() {
 
 
 void newEntry() {
-	File dataFile;
 	String dirTag=tag;
-	SD.chdir("/");
+	
+	 SD.chdir("/");
 	char *dir=(char*)malloc(course[course_count-1].length());
     toChar(dir,course[course_count-1]);
     SD.chdir(dir);
+    
 	char *charTag=(char*) malloc(dirTag.length());
 	toChar(charTag,dirTag);
-	Serial.println(course[course_count-1]+" "+dirTag);
+	Serial.println(dir);
 	if (mode == "regmode") {
 		if (!isRegistered(dirTag)) {
-			dataFile = SD.open(charTag, FILE_WRITE);
-			if (dataFile) {
-				dataFile.print("");
+			if (file.open(charTag,O_RDWR | O_CREAT | O_AT_END)) {
+				file.print("");
 				Serial.println(charTag);
-				dataFile.close();
+				file.close();
 				lcd.clear();
 				lcd.print("Registration Complete");
 			}
@@ -151,17 +183,16 @@ void newEntry() {
 	else if (mode == "atmode") {
 		if (isRegistered(dirTag)){
 			if(!Attended(dirTag)){
-				SdFile uid;
-				if(uid.open(charTag,O_RDWR | O_CREAT | O_AT_END)){
-					uid.println(date);
-					uid.close();
+				if(file.open(charTag,O_RDWR | O_CREAT | O_AT_END)){
+					file.println(date);
+					file.close();
 					lcd.clear();
 					lcd.print("Attendance Complete");
 				}
 				else{
 					Serial.println("Cannot open File!!");
 				}
-				uid.close();
+				file.close();
 				
 			}
 			else if (Attended(dirTag)) {
@@ -187,42 +218,46 @@ void newEntry() {
 	free(dir);
 }
 
-void dumpFile(char *fileName) {
-
-	if(SD.exists(fileName)){
-		File dataFile = SD.open(fileName);
-		if (dataFile) {
-			while (dataFile.available()) {
-				String line = dataFile.readString();
-				Serial.println(line);
-			}
-			lcd.clear();
-			lcd.setCursor(0, 0);
-			lcd.print("Dumping done!");
-			dataFile.close();
+void dumpFile(String directory) {
+	SD.chdir("/");
+    char *dir=(char*)malloc(directory.length());
+    toChar(dir,directory);
+    SD.chdir(dir);
+    char dts;
+    lcd.clear();
+    lcd.print("Dumping Course: ");
+    lcd.print(dir);
+    while (file.openNext(SD.vwd(), O_READ)) {
+		file.printName(&Serial);
+		Serial.println("");
+		while(file.available()){
+			dts=file.read();
+			Serial.print(dts);
 		}
-	}
-	else {
-		lcd.clear();
-		lcd.print("File Not Exists");
+		file.close();
 	}
 }
 
 
 boolean isRegistered(String ptag) {
-	SD.chdir("/");
+	
+	 SD.chdir("/");
     char *dir=(char*)malloc(course[course_count-1].length());
     toChar(dir,course[course_count-1]);
     SD.chdir(dir);
-	char *charTag=(char*) malloc(ptag.length());
+    
+    char *charTag=(char*) malloc(ptag.length());
 	toChar(charTag,ptag);
-	Serial.println("Checking existance "+ptag);
+	Serial.print("Checking existance "+ptag);
+	
 	if(SD.exists(charTag)){
+		Serial.println(".... registered");
 		free(charTag);
 		free(dir);
 		return true;
 	}
 	else {
+		Serial.println(".... not registered");
 		free(charTag);
 		free(dir);
 		return false;
@@ -236,16 +271,14 @@ boolean Attended(String dirTag) {
 	String atDate;
 	char cdt;
 	boolean flag=0;
-	SdFile oid;
-	
-	if(oid.open(charTag,O_READ)){
-		while(oid.available()){
-			cdt=oid.read();
+	if(file.open(charTag,O_READ)){
+		while(file.available()){
+			cdt=file.read();
 			if(isNum(cdt)){
 				atDate+=cdt;
 			}
 			if(atDate.length()==8){
-				Serial.println(atDate);
+				Serial.println(atDate+" "+date);
 				if(atDate==date){
 					flag=1;
 					atDate="";
@@ -254,13 +287,13 @@ boolean Attended(String dirTag) {
 				atDate="";
 			}
 		}
-		oid.close();
+		file.close();
 	}
 	else{
 		Serial.println("Failed to open File");
 		return 1;
 	}
-	oid.close();
+	file.close();
 	free(charTag);
 	Serial.print("Returninng at Flag ");
 	Serial.println(flag);
@@ -268,13 +301,17 @@ boolean Attended(String dirTag) {
 }
 
 void deRegistration(String ptag) {
-	SD.chdir("/");
+	
 	char *charTag=(char*) malloc(ptag.length());
 	toChar(charTag,ptag);
+	
+	
+	SD.chdir("/");
 	char *dir=(char*)malloc(course[course_count-1].length());
     toChar(dir,course[course_count-1]);
     SD.chdir(dir);
-
+	
+	
 	if(SD.exists(charTag)){
 		SD.remove(charTag);
 		lcd.clear();
@@ -291,19 +328,46 @@ void deRegistration(String ptag) {
 }
 
 void initCourseList(){
-	File courseFile=SD.open("courses.lst");
 	char c;
-	if(courseFile){
+	if(file.open("courses.lst",O_READ)){
 		course_count=0;
-		while(courseFile.available()){
-			c=courseFile.read();
-			if(c!=' '){
+		while(file.available()){
+			c=file.read();
+			
+			if(isNum(c)){
 				course[course_count]+=c;
 			}
 			else{
 				course_count++;
+				MAX_COURSE=course_count;
 			}
 		}
+		file.close();
 	}
-	courseFile.close();
+	if(course[MAX_COURSE-1].length()<3){
+		MAX_COURSE--;
+		course_count--;
+	}
+	file.close();
+	Serial.println(MAX_COURSE);
+	makeDirectory();
+}
+
+void makeDirectory(){
+	
+	int i;
+	char *dir;
+	for(i=0;i<MAX_COURSE;i++){
+		Serial.print(course[i]+" ");
+		dir=(char*)malloc(course[i].length());
+		toChar(dir,course[i]);
+		if(SD.exists(dir)){
+			Serial.println("Exists");
+		}
+		else{
+			Serial.println("Does not exists");
+			SD.mkdir(dir);
+		}
+		free(dir);
+	}
 }
