@@ -1,3 +1,4 @@
+//not capable of creating course folders
 #include <SoftwareSerial.h>
 #include <LiquidCrystal.h>
 #include <SdFat.h>
