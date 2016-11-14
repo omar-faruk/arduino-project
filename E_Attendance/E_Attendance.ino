@@ -1,4 +1,7 @@
-//not capable of creating course folders
+/*capable of creating course folders 
+ * dumping working flawlessly
+ * UI changed
+ */
 #include <SoftwareSerial.h>
 #include <LiquidCrystal.h>
 #include <SdFat.h>
