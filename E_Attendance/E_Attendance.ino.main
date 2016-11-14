@@ -3,18 +3,17 @@
 #include <SdFat.h>
 #include "string_process.h"
 
-//lcd (rs, enable, d4, d5, d6, d7);
+
 LiquidCrystal lcd(10, 7, 6, 5, 3, 2); //set 1st pin to 8 if ethernet shield else set to 10
 SoftwareSerial rfid = SoftwareSerial(9, 13);
 int button_data,course_count,dateConfirmed;
-int MAX_COURSE;
 SdFat SD;
 SdFile file;
 
 void setup() {
 	Serial.begin(9600);
 	rfid.begin(9600);
-	MAX_COURSE=course_count=0;
+	course_count=0;
 	dateConfirmed=0;
 	pinMode(8, OUTPUT); //output pin mode 8 on sd shield else pin 4
 	if (!SD.begin(8)) {  //chip select on pin 8 in sd shield else pin 4
@@ -39,7 +38,7 @@ void setup() {
 		lcd.clear();
 		lcd.print("Today: ");
 		lcd.print(date);
-		//Serial.println(date+" "+date.length());
+		Serial.println(date+" "+date.length());
 	}
 }
 
@@ -52,29 +51,8 @@ void loop() {
 			dumpFile(course[course_count-1]);
 			//SD.remove("atd.txt");
 		}
-		
-		if(command[0]=='c' && command[1]=='r'){
-			
-			char *courseCodes=(char*)malloc(command.length()-3);
-			int j=0,i;
-			for(i=2;i<command.length();i++){
-				courseCodes[j]=command[i];
-				j++;
-			}
-			if(SD.exists("courses.lst")){
-				SD.remove("courses.lst");
-			}
-			if(file.open("courses.lst",O_RDWR | O_CREAT | O_AT_END)){
-				lcd.clear();
-				lcd.print(courseCodes);
-				file.print(courseCodes);
-				file.close();
-				//Serial.println(courseCodes);
-				free(courseCodes);
-			}
-		}
-		
 		if(dateConfirmed==0){
+			  
 			if(command[0]=='d' && command[1]=='t'){
 				char *charDate=(char*)malloc(8);
 				int i=2;
@@ -90,7 +68,7 @@ void loop() {
 					lcd.print(charDate);
 					file.println(charDate);
 					file.close();
-					//Serial.println(charDate);
+					Serial.println(charDate);
 					free(charDate);
 				}
 			}
@@ -117,7 +95,7 @@ void loop() {
 		lcd.print("Registration Mode");
 	}
 	else if(button_data>=600 && button_data<=700){
-		if(course_count==MAX_COURSE){
+		if(course_count==5){
 			course_count=0;
 		}
 		mode="";
@@ -126,7 +104,7 @@ void loop() {
 		course_count++;
 	}
 	else if(button_data>800 && button_data<900){
-		//Serial.println("Start dumping: "+course[course_count-1]);
+		Serial.println("Start dumping: "+course[course_count-1]);
 		dumpFile(course[course_count-1]);
 		
 	}
@@ -162,12 +140,12 @@ void newEntry() {
     
 	char *charTag=(char*) malloc(dirTag.length());
 	toChar(charTag,dirTag);
-	//Serial.println(dir);
+	Serial.println(dir);
 	if (mode == "regmode") {
 		if (!isRegistered(dirTag)) {
 			if (file.open(charTag,O_RDWR | O_CREAT | O_AT_END)) {
 				file.print("");
-				//Serial.println(charTag);
+				Serial.println(charTag);
 				file.close();
 				lcd.clear();
 				lcd.print("Registration Complete");
@@ -226,11 +204,9 @@ void dumpFile(String directory) {
     lcd.clear();
     lcd.print("Dumping Course: ");
     lcd.print(dir);
-    Serial.print(dir);
-    Serial.println("#");
     while (file.openNext(SD.vwd(), O_READ)) {
 		file.printName(&Serial);
-		Serial.print(",");
+		Serial.println("");
 		while(file.available()){
 			dts=file.read();
 			Serial.print(dts);
@@ -249,16 +225,15 @@ boolean isRegistered(String ptag) {
     
     char *charTag=(char*) malloc(ptag.length());
 	toChar(charTag,ptag);
-	//Serial.print("Checking existance "+ptag);
-	
+	Serial.print("Checking existance "+ptag);
 	if(SD.exists(charTag)){
-		//Serial.println(".... registered");
+		Serial.println(".... registered");
 		free(charTag);
 		free(dir);
 		return true;
 	}
 	else {
-		//Serial.println(".... not registered");
+		Serial.println(".... not registered");
 		free(charTag);
 		free(dir);
 		return false;
@@ -279,7 +254,7 @@ boolean Attended(String dirTag) {
 				atDate+=cdt;
 			}
 			if(atDate.length()==8){
-				//Serial.println(atDate+" "+date);
+				Serial.println(atDate+" "+date);
 				if(atDate==date){
 					flag=1;
 					atDate="";
@@ -291,12 +266,12 @@ boolean Attended(String dirTag) {
 		file.close();
 	}
 	else{
-		//Serial.println("Failed to open File");
+		Serial.println("Failed to open File");
 		return 1;
 	}
 	file.close();
 	free(charTag);
-	//Serial.print("Returninng at Flag ");
+	Serial.print("Returninng at Flag ");
 	Serial.println(flag);
 	return flag;
 }
@@ -334,41 +309,13 @@ void initCourseList(){
 		course_count=0;
 		while(file.available()){
 			c=file.read();
-			
-			if(isNum(c)){
+			if(c!=' '){
 				course[course_count]+=c;
 			}
 			else{
 				course_count++;
-				MAX_COURSE=course_count;
 			}
 		}
-		file.close();
-	}
-	if(course[MAX_COURSE-1].length()<3){
-		MAX_COURSE--;
-		course_count--;
 	}
 	file.close();
-	//Serial.println(MAX_COURSE);
-	makeDirectory();
-}
-
-void makeDirectory(){
-	
-	int i;
-	char *dir;
-	for(i=0;i<MAX_COURSE;i++){
-		//Serial.print(course[i]+" ");
-		dir=(char*)malloc(course[i].length());
-		toChar(dir,course[i]);
-		if(SD.exists(dir)){
-			//Serial.println("Exists");
-		}
-		else{
-			//Serial.println("Does not exists");
-			SD.mkdir(dir);
-		}
-		free(dir);
-	}
 }
